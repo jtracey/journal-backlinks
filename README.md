@@ -1,4 +1,4 @@
-# journal-links
+# journal-backlinks
 A module for Foundry VTT that links entities (journal entries, actors and items) that reference each other. Continuing the work of the abandoned [journal-links](https://github.com/Sigafoos/journal-links).
 
 "Have we interacted with this faction before?"
@@ -12,7 +12,7 @@ This module adds wiki-style "referenced by" links to journals, actors and items,
 ![a variety of entities showing links](example.png)
 
 ## Installing
-Add the manifest to your Foundry modules: https://raw.githubusercontent.com/jtracey/journal-links/master/module.json
+Add the manifest to your Foundry modules: https://raw.githubusercontent.com/jtracey/journal-backlinks/master/module.json
 
 (automatic discovery/install in Foundry itself coming soon)
 
