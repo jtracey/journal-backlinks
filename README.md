@@ -12,7 +12,7 @@ This module adds wiki-style "referenced by" links to journals, actors and items,
 ![a variety of entities showing links](example.png)
 
 ## Installing
-Add the manifest to your Foundry modules: https://raw.githubusercontent.com/jtracey/journal-backlinks/master/module.json
+Add the manifest to your Foundry modules: https://raw.githubusercontent.com/jtracey/journal-backlinks/main/module.json
 
 (automatic discovery/install in Foundry itself coming soon)
 
