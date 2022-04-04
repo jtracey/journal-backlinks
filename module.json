@@ -9,8 +9,8 @@
   "bugs": "https://github.com/Sigafoos/journal-links/issues",
   "flags": {},
   "version": "0.4",
-  "minimumCoreVersion": "0.9",
-  "compatibleCoreVersion": "0.9",
+  "minimumCoreVersion": "9",
+  "compatibleCoreVersion": "9",
   "scripts": [],
   "esmodules": [
     "./scripts/index.js"
