@@ -26,6 +26,15 @@ Hooks.on("init", () => {
         type: String,
         default: 'h1'
     });
+    game.settings.register(MODULE_NAME, 'minPermission', {
+        name : 'Minimum permission',
+        hint: 'A user needs at least this permission level on the destination for a link to be visible.',
+        scope: 'world',
+        config: true,
+        type: String,
+        choices: Object.keys(CONST.DOCUMENT_PERMISSION_LEVELS),
+        default: 'LIMITED'
+    });
     game.settings.register(MODULE_NAME, 'debug', {
         name : 'Debug logging',
         scope: 'client',

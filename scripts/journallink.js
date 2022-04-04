@@ -163,6 +163,8 @@ export class JournalLink {
             for (let value of values) {
                 let mappedType = this.entityMap[type];
                 let entity = game[mappedType].get(value);
+                if (!entity.testUserPermission(game.users.current, game.settings.get('journal-links', 'minPermission')))
+                    continue;
                 this.debug('adding link from ' + type + ' ' + entity.name);
                 let link = $('<a class="entity-link content-link" draggable="true"></a>');
                 link.attr('data-entity', type);
