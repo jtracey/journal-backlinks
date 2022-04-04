@@ -1,5 +1,5 @@
 # journal-links
-A module for Foundry VTT that links entities (journal entries, actors and items) that reference each other.
+A module for Foundry VTT that links entities (journal entries, actors and items) that reference each other. Continuing the work of the abandoned [journal-links](https://github.com/Sigafoos/journal-links).
 
 "Have we interacted with this faction before?"
 
@@ -28,3 +28,4 @@ The module may perform additional automatic syncs after an update which fixes a 
 * **Heading tag**: by default it uses `<h1>` tags for the section. If you'd like to change it to `<h2>`, etc, you can (note: this doesn't support custom classes, attributes, etc)
 * **Minimum permission**: change this to set the minimum permission level a user must have before being able to see a backlink to that entity
 * **Debug**: will print more detailed information about the linking process in the developer console (default: disabled)
+
