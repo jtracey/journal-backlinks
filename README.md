@@ -12,7 +12,7 @@ This module adds wiki-style "referenced by" links to journals, actors and items,
 ![a variety of entities showing links](example.png)
 
 ## Installing
-Add the manifest to your Foundry modules: https://raw.githubusercontent.com/Sigafoos/journal-links/master/module.json
+Add the manifest to your Foundry modules: https://raw.githubusercontent.com/jtracey/journal-links/master/module.json
 
 (automatic discovery/install in Foundry itself coming soon)
 
@@ -26,4 +26,5 @@ The module may perform additional automatic syncs after an update which fixes a 
 ## Settings
 * **Rebuild on save**: if disabled, won't automatically generate links between entities (default: enabled)
 * **Heading tag**: by default it uses `<h1>` tags for the section. If you'd like to change it to `<h2>`, etc, you can (note: this doesn't support custom classes, attributes, etc)
+* **Minimum permission**: change this to set the minimum permission level a user must have before being able to see a backlink to that entity
 * **Debug**: will print more detailed information about the linking process in the developer console (default: disabled)
