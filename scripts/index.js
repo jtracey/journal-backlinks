@@ -4,11 +4,11 @@ import { Sync } from './sync.js';
 // bump this to cause a sync on page load (one time)
 const SYNC_VERSION = 1;
 
-const MODULE_NAME = 'journal-links';
-const NAME = 'Journal Links';
+const MODULE_NAME = 'journal-backlinks';
+const NAME = 'Journal Backlinks';
 
 Hooks.on("init", () => {
-    console.log('journal-links | initializing');
+    console.log('journal-backlinks | initializing');
     let modulename = MODULE_NAME;
     game.settings.register(MODULE_NAME, 'rebuildOnSave', {
         name : 'Rebuild links on journal save',
@@ -75,7 +75,7 @@ Hooks.on("init", () => {
     // initial sync
     Hooks.on('ready', () => {
         if (game.settings.get(MODULE_NAME, 'lastSyncedVersion') < SYNC_VERSION) {
-            console.log('journal-links | performing sync...');
+            console.log('journal-backlinks | performing sync...');
             game.JournalLink.sync();
             game.settings.set(MODULE_NAME, 'lastSyncedVersion', SYNC_VERSION);
         }
