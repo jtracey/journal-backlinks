@@ -11,39 +11,40 @@ Hooks.on("init", () => {
     console.log('journal-backlinks | initializing');
     let modulename = MODULE_NAME;
     game.settings.register(MODULE_NAME, 'rebuildOnSave', {
-        name : 'Rebuild links on journal save',
-        hint: 'If unchecked, linking only happens on manual sync. As there is currently no way to manually sync, effectively disables linking.',
+        name: game.i18n.localize('JournalBacklinks.rebuildOnSave.name'),
+        hint: game.i18n.localize('JournalBacklinks.rebuildOnSave.hint'),
         scope: 'world',
         config: true,
         type: Boolean,
         default: true
     });
     game.settings.register(MODULE_NAME, 'headingTag', {
-        name : 'Heading tag for links',
-        hint: 'For <h1>Links</h1>, enter h1. Do not add classes, etc.',
+        name: game.i18n.localize('JournalBacklinks.headingTag.name'),
+        hint: game.i18n.localize('JournalBacklinks.headingTag.hint'),
         scope: 'world',
         config: true,
         type: String,
         default: 'h1'
     });
+    const permissions = Object.fromEntries(Object.entries(CONST.DOCUMENT_PERMISSION_LEVELS).map(([k, v]) => [v, game.i18n.localize('PERMISSION.'+k)]));
     game.settings.register(MODULE_NAME, 'minPermission', {
-        name : 'Minimum permission',
-        hint: 'A user needs at least this permission level on the destination for a link to be visible.',
+        name: game.i18n.localize('JournalBacklinks.minPermission.name'),
+        hint: game.i18n.localize('JournalBacklinks.minPermission.hint'),
         scope: 'world',
         config: true,
-        type: String,
-        choices: Object.keys(CONST.DOCUMENT_PERMISSION_LEVELS),
-        default: 'LIMITED'
+        type: Number,
+        choices: permissions,
+        default: 1
     });
     game.settings.register(MODULE_NAME, 'debug', {
-        name : 'Debug logging',
+        name: game.i18n.localize('JournalBacklinks.debug.name'),
         scope: 'client',
         config: true,
         type: Boolean,
         default: false
     });
     game.settings.register(MODULE_NAME, 'lastSyncedVersion', {
-        name : 'Last synced version',
+        name: 'Last synced version',
         hint: 'If we perform a bugfix that would benefit from resyncing, SYNC_VERSION will be out of -- forgive me -- sync, indicating we should perform a sync',
         scope: 'world',
         config: false,
@@ -51,8 +52,8 @@ Hooks.on("init", () => {
         default: 0
     });
     game.settings.registerMenu(MODULE_NAME, 'syncButton', {
-        name: 'Sync entries',
-        label: 'Sync now',
+        name: game.i18n.localize('JournalBacklinks.syncButton.name'),
+        label: game.i18n.localize('JournalBacklinks.syncButton.label'),
         icon: 'fas fa-sync-alt',
         type: Sync,
         restricted: true

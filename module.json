@@ -16,7 +16,13 @@
     "./scripts/index.js"
   ],
   "styles": [],
-  "languages": [],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "./lang/en.json"
+    }
+  ],
   "packs": [],
   "system": [],
   "dependencies": [],
