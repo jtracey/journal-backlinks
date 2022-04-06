@@ -1,0 +1,11 @@
+{
+    "JournalBacklinks.rebuildOnSave.name": "Reconstruir enlaces al guardar la nota",
+    "JournalBacklinks.rebuildOnSave.hint": "Si no se marca, el enlazado solo ocurre en la sincronización manual, a efectos prácticos desactiva el enlazado.",
+    "JournalBacklinks.headingTag.name": "Cabecera para las etiquetas de los enlaces",
+    "JournalBacklinks.headingTag.hint": "Para <h1>Enlaces</h1>, introduzca h1. No agregue clases, etc.",
+    "JournalBacklinks.minPermission.name": "Permiso mínimo",
+    "JournalBacklinks.minPermission.hint": "Un usuario necesita como mínimo este nivel de permisos en la nota de destino parra que el enlace sea visible.",
+    "JournalBacklinks.debug.name": "Registro de depuración",
+    "JournalBacklinks.syncButton.name": "Sincronizar notas",
+    "JournalBacklinks.syncButton.label": "Sincronizar ahora"
+}
