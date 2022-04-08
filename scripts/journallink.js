@@ -1,5 +1,5 @@
 export class JournalLink {
-    re = /@(\w+)\[(\w+)\]/g;
+    re = /@(\w+)\[([\w| ]+)\]/g;
 
     entityMap = {
         'JournalEntry': 'journal',
@@ -46,7 +46,6 @@ export class JournalLink {
             return;
         }
         this.log('updating ' + entityType + ' ' + entity.name + ' (' + entity.id + ')');
-
         let references = this.references(content);
         let existing = entity.data.flags['journal-backlinks']?.references || {}
 
@@ -72,11 +71,16 @@ export class JournalLink {
             }
 
             let mappedEntity = this.entityMap[reference.type];
-            let referenced = mappedEntity && game[mappedEntity] && game[mappedEntity].get(reference.id);
-            if (!referenced) {
-                this.debug('no referenced entity ' + reference.type + ' ' + reference.id + '; skipping');
+            var referencedById = mappedEntity && game[mappedEntity] && game[mappedEntity].get(reference.id);		
+			var referencedByName = mappedEntity && game[mappedEntity] && game[mappedEntity].getName(reference.id);		//Az		
+			var referenced = referencedById;
+
+			if (referencedByName) {				
+				referenced = referencedByName;
+			}else if (!referencedById) {
+				this.debug('no referenced entity ' + reference.type + ' ' + reference.id + '; skipping');
                 continue;
-            }
+			}				
 
             this.debug('adding to referencedBy in ' + reference.type + ' ' + referenced.name);
             let links = await referenced.getFlag('journal-backlinks', 'referencedBy') || {};
@@ -88,7 +92,11 @@ export class JournalLink {
             linksOfType.push(entity.id);
 
             links[entityType] = linksOfType;
-            await game[mappedEntity].get(reference.id).setFlag('journal-backlinks', 'referencedBy', duplicate(links))
+            if (referencedByName) {
+				await game[mappedEntity].getName(reference.id).setFlag('journal-backlinks', 'referencedBy', duplicate(links))
+			}else {
+				await game[mappedEntity].get(reference.id).setFlag('journal-backlinks', 'referencedBy', duplicate(links))
+			}
         }
 
         for (const [type, values] of Object.entries(existing)) {
