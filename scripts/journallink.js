@@ -71,16 +71,12 @@ export class JournalLink {
             }
 
             let mappedEntity = this.entityMap[reference.type];
-            var referencedById = mappedEntity && game[mappedEntity] && game[mappedEntity].get(reference.id);		
-			var referencedByName = mappedEntity && game[mappedEntity] && game[mappedEntity].getName(reference.id);		//Az		
-			var referenced = referencedById;
+            var referenced = mappedEntity && game[mappedEntity] && (game[mappedEntity].get(reference.id) || game[mappedEntity].getName(reference.id));
 
-			if (referencedByName) {				
-				referenced = referencedByName;
-			}else if (!referencedById) {
-				this.debug('no referenced entity ' + reference.type + ' ' + reference.id + '; skipping');
+            if (!referenced) {
+                this.debug('no referenced entity ' + reference.type + ' ' + reference.id + '; skipping');
                 continue;
-			}				
+            }
 
             this.debug('adding to referencedBy in ' + reference.type + ' ' + referenced.name);
             let links = await referenced.getFlag('journal-backlinks', 'referencedBy') || {};
@@ -92,11 +88,7 @@ export class JournalLink {
             linksOfType.push(entity.id);
 
             links[entityType] = linksOfType;
-            if (referencedByName) {
-				await game[mappedEntity].getName(reference.id).setFlag('journal-backlinks', 'referencedBy', duplicate(links))
-			}else {
-				await game[mappedEntity].get(reference.id).setFlag('journal-backlinks', 'referencedBy', duplicate(links))
-			}
+            referenced.setFlag('journal-backlinks', 'referencedBy', duplicate(links));
         }
 
         for (const [type, values] of Object.entries(existing)) {
