@@ -148,7 +148,7 @@ export class JournalLink {
 
         this.log('appending links to ' + entityData.name);
         let element = this.getElementToModify(html);
-        if (element.length === 0 || element.children().length === 0)
+        if (element === undefined || element.length === 0 || element.children().length === 0)
             return;
 
         let linksDiv = $('<div class="journal-backlinks"></div>');
