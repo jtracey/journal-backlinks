@@ -1,0 +1,5 @@
+@media print {
+  .journal-backlinks {
+    display: none;
+  }
+}
