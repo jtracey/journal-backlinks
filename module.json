@@ -15,7 +15,9 @@
   "esmodules": [
     "./scripts/index.js"
   ],
-  "styles": [],
+  "styles": [
+    "./css/journallink.css"
+  ],
   "languages": [
     {
       "lang": "en",
