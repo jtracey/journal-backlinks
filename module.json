@@ -8,7 +8,7 @@
   "license": "https://raw.githubusercontent.com/jtracey/journal-backlinks/main/LICENSE",
   "bugs": "https://github.com/jtracey/journal-backlinks/issues",
   "flags": {},
-  "version": "0.7.0",
+  "version": "0.8.0",
   "minimumCoreVersion": "9",
   "compatibleCoreVersion": "9",
   "scripts": [],
