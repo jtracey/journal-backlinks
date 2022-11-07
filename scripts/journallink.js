@@ -1,42 +1,38 @@
 export class JournalLink {
-    re = /@(\w+)\[([\w| ]+)\]/g;
+    re = /@(\w+)\[([\w| |\.]+)\]/g;
 
     entityMap = {
-        'JournalEntry': 'journal',
-        'Actor': 'actors',
-        'Item': 'items',
-        'RollTable': 'tables'
     };
 
     elementSelectors = [
-        '.editor-content',
-        '.editor-content[data-edit="data.details.biography.value"]'
+        '.editor-content[data-edit="system.description.value"]',
+        '.editor-content[data-edit="system.details.biography.value"]'
     ];
 
-    async updateJournalEntry(entity, change) {
-        let content = change.content;
-        if (content !== undefined) {
-            await this.update(entity, 'JournalEntry', content || '', false);
+    async updateJournalEntryPage(entity, change) {
+        let text = change.text;
+        if (text !== undefined) {
+            await this.update(entity, 'JournalEntryPage', text.content || '', false);
         } else if (change.flags?.['journal-backlinks']?.['-=sync'] === null) {
-            await this.update(entity, 'JournalEntry', entity.data.content || '', true);
+            await this.update(entity, 'JournalEntryPage', entity.text.content || '', true);
         }
     }
 
     async updateActor(entity, change) {
-        let content = change.data?.details?.biography?.value;
+        let content = change.system?.details?.biography?.value;
         if (content !== undefined) {
             await this.update(entity, 'Actor', content || '', false);
         } else if (change.flags?.['journal-backlinks']?.['-=sync'] === null) {
-            await this.update(entity, 'Actor', entity.data.data.details.biography.value || '', true);
+            await this.update(entity, 'Actor', entity.system.details.biography.value || '', true);
         }
     }
 
     async updateItem(entity, change) {
-        let content = change.data?.description?.value;
+        let content = change.system?.description?.value;
         if (content !== undefined) {
             await this.update(entity, 'Item', content || '', false);
         } else if (change.flags?.['journal-backlinks']?.['-=sync'] === null) {
-            await this.update(entity, 'Item', entity.data.data.description.value || '', true);
+            await this.update(entity, 'Item', entity.system.description.value || '', true);
         }
     }
 
@@ -45,92 +41,80 @@ export class JournalLink {
             this.log('not updating ' + entityType + ' ' + entity.name + ' as rebuildOnSave is false');
             return;
         }
-        this.log('updating ' + entityType + ' ' + entity.name + ' (' + entity.id + ')');
+        this.log('updating ' + entityType + ' ' + entity.name + ' (' + entity.uuid + ')');
         let references = this.references(content);
-        let existing = entity.data.flags['journal-backlinks']?.references || {}
+        let existing = entity.flags['journal-backlinks']?.references || [];
 
-        let updated = {};
+        let updated = [];
 
         for (let reference of references) {
-            if (updated[reference.type] === undefined) {
-              updated[reference.type] = [];
+            if (reference.startsWith('.')) {
+                // a local reference, need to reconstruct the global UUID
+                reference = entity.uuid.split('.').slice(0, 2).join('.') + '.' + entityType + reference;
             }
-
             // if we've linked something multiple times in this entity
-            let updated_type = updated[reference.type];
-            if (updated_type.includes(reference.id)) {
-                this.debug(reference.type + ' ' + reference.id + ' is already updated, skipping');
+            if (updated.includes(reference)) {
+                this.debug(reference + ' is already updated, skipping');
                 continue;
             }
-            updated_type.push(reference.id);
+            updated.push(reference);
 
-            let existingOfType = existing[reference.type] || [];
-            if (existingOfType.includes(reference.id)) {
-                this.debug(reference.type + ' ' + reference.id + ' is already referenced, skipping (existingOfType is ' + existingOfType.toString() + ')');
+            if (existing.includes(reference)) {
+                this.debug(reference + ' is already referenced, skipping');
                 continue;
             }
 
-            let mappedEntity = this.entityMap[reference.type];
-            var referenced = mappedEntity && game[mappedEntity] && (game[mappedEntity].get(reference.id) || game[mappedEntity].getName(reference.id));
+            var referenced = game.documentIndex.uuids[reference].leaves[0].entry;
 
             if (!referenced) {
-                this.debug('no referenced entity ' + reference.type + ' ' + reference.id + '; skipping');
+                this.debug('no referenced entity ' + reference + '; skipping');
                 continue;
             }
 
-            this.debug('adding to referencedBy in ' + reference.type + ' ' + referenced.name);
+            this.debug('adding to referencedBy in ' + referenced.name);
             let links = await referenced.getFlag('journal-backlinks', 'referencedBy') || {};
             let linksOfType = links[entityType] || [];
-            if (linksOfType.includes(entity.id)) {
-                this.debug(entityType + ' ' + entity.id + ' already exists, skipping');
+            if (linksOfType.includes(entity.uuid)) {
+                this.debug(entityType + ' ' + entity.uuid + ' already exists, skipping');
                 continue;
             }
-            linksOfType.push(entity.id);
+            linksOfType.push(entity.uuid);
 
             links[entityType] = linksOfType;
             referenced.setFlag('journal-backlinks', 'referencedBy', duplicate(links));
         }
 
-        for (const [type, values] of Object.entries(existing)) {
-            let current = updated[type] || [];
-            for (let outdated of values.filter(v => !current.includes(v))) {
-                let target = game[this.entityMap[type]].get(outdated);
-                if (!target) {
-                    this.debug('outdated entity ' + type + ' ' + outdated + ' does not exist');
-                    continue;
-                }
-
-                let links = await target.getFlag('journal-backlinks', 'referencedBy');
-                let linksOfType = links[entityType] || [];
-                let outdatedIdx = linksOfType.indexOf(entity.id);
-                if (outdatedIdx > -1) {
-                    this.debug('removing outdated entity ' + entityType + ' ' + entity.name
-                               + ' from ' + type + ' ' + target.name);
-                    linksOfType.splice(outdatedIdx, 1);
-
-                    if (linksOfType.length) {
-                        links[entityType] = linksOfType;
-                    } else {
-                        delete links[entityType];
-                        links['-=' + entityType] = null;
-                    }
-
-                    let copy = duplicate(links);
-                    await target.setFlag('journal-backlinks', 'referencedBy', copy);
-                }
+        for (let outdated of existing.filter(v => !updated.includes(v))) {
+            let target = game.documentIndex.uuids[outdated].leaves[0].entry;
+            if (!target) {
+                this.debug('outdated entity ' + type + ' ' + outdated + ' does not exist');
+                continue;
             }
-        };
 
-        for (const type in this.entityMap) {
-            if(updated[type] === undefined) {
-              updated['-=' + type] = null;
+            let links = await target.getFlag('journal-backlinks', 'referencedBy');
+            let linksOfType = links[entityType] || [];
+            let outdatedIdx = linksOfType.indexOf(entity.uuid);
+            if (outdatedIdx > -1) {
+                this.debug('removing outdated entity ' + entityType + ' ' + entity.name
+                           + ' from ' + target.name);
+                linksOfType.splice(outdatedIdx, 1);
+
+                if (linksOfType.length) {
+                    links[entityType] = linksOfType;
+                } else {
+                    delete links[entityType];
+                    links['-=' + entityType] = null;
+                }
+
+                let copy = duplicate(links);
+                await target.setFlag('journal-backlinks', 'referencedBy', copy);
             }
         }
         await entity.setFlag('journal-backlinks', 'references', updated);
     }
 
-    includeJournalLinks(sheet, html, data) {
-        this.includeLinks(html, data.data);
+    includeJournalPageLinks(sheet, html, data) {
+        this.includeLinks(html, data.document);
     }
 
     includeActorLinks(sheet, html, data) {
@@ -147,9 +131,6 @@ export class JournalLink {
             return;
 
         this.log('appending links to ' + entityData.name);
-        let element = this.getElementToModify(html);
-        if (element === undefined || element.length === 0 || element.children().length === 0)
-            return;
 
         let linksDiv = $('<div class="journal-backlinks"></div>');
         let heading = document.createElement(game.settings.get('journal-backlinks', 'headingTag'));
@@ -157,68 +138,82 @@ export class JournalLink {
         linksDiv.append(heading);
         let linksList = $('<ul></ul>');
         for (const [type, values] of Object.entries(links)) {
-            if (values.length === 0)
-                continue;
-
             for (let value of values) {
-                let mappedType = this.entityMap[type];
-                let entity = game[mappedType].get(value);
+                let entity = game.documentIndex.uuids[value].leaves[0].entry;
                 if (!entity.testUserPermission(game.users.current, game.settings.get('journal-backlinks', 'minPermission')))
                     continue;
                 this.debug('adding link from ' + type + ' ' + entity.name);
-                let link = $('<a class="entity-link content-link" draggable="true"></a>');
-                link.attr('data-entity', type);
+                let link = $('<a class="content-link" draggable="true"></a>');
                 link.attr('data-type', type);
-                link.attr('data-id', value);
+                link.attr('data-uuid', value);
 
                 let icon = 'fas ';
                 switch (type) {
-                    case 'JournalEntry':
-                        icon += 'fa-book-open';
-                        break;
-                    case 'Actor':
-                        icon += 'fa-user';
-                        break;
-                    case 'Item':
-                        icon += 'fa-suitcase';
-                        break;
-                    case 'RollTable':
-                        icon == 'fa-th-list';
-                        break;
+                case 'JournalEntryPage':
+                    icon += 'fa-file-lines';
+                    break;
+                case 'Actor':
+                    icon += 'fa-user';
+                    break;
+                case 'Item':
+                    icon += 'fa-suitcase';
+                    break;
+                case 'RollTable':
+                    icon == 'fa-th-list';
+                    break;
                 }
                 link.append($('<i class="' + icon + '"></i>'));
                 link.append(' ' + entity.name);
 
+                let p = $('<p></p>');
+                p.append(link);
+
                 let li = $('<li></li>');
-                li.append(link);
+                li.append(p);
                 linksList.append(li);
             }
         }
         linksDiv.append(linksList);
 
-        element.append(linksDiv);
+        let element = this.getElementToModify(html);
+        if (element === undefined || element.length === 0) {
+            // the callback is (presumably) directly on what we want to modify
+            html.parent().append(linksDiv);
+        }
+        else {
+            // the callback is on a parent of what we want to modify
+            element.append(linksDiv);
+        }
     }
 
     // clears and recreates references
     async sync() {
         this.log('syncing links...');
-        let keys = Object.values(this.entityMap);
 
-        for (let key of keys) {
-            this.log('wiping referencedBy for ' + key);
-            for (const [id, entity] of game[key].entries()) {
-                this.debug('wiping referencedBy for ' + entity.name);
-                await entity.unsetFlag('journal-backlinks', 'referencedBy');
+        let document_types = ['JournalEntryPage', 'Actor', 'Item', 'RollTable'];
+        let entries = game.documentIndex.lookup('', {documentTypes: document_types});
+
+        for (let type of document_types) {
+            this.log('wiping referencedBy for ' + type);
+            for (const document of entries[type]) {
+                let entity = document.entry;
+                if (entity.flags !== undefined) {
+                    this.debug('wiping referencedBy for ' + entity.name);
+                    await entity.unsetFlag('journal-backlinks', 'referencedBy');
+                }
             }
         }
 
         // this will rebuild the references, so we need to have referencedBy wiped first
-        for (let key of keys) {
-            this.log('wiping references and refreshing for ' + key);
-            for (const [id, entity] of game[key].entries()) {
-                this.debug('wiping references and refreshing for ' + entity.name);
-                await entity.unsetFlag('journal-backlinks', 'references');
-                await entity.unsetFlag('journal-backlinks', 'sync');
+        for (let type of document_types) {
+            this.log('wiping references and refreshing for ' + type);
+            for (const document of entries[type]) {
+                let entity = document.entry;
+                if (entity.flags !== undefined) {
+                    this.debug('wiping references and refreshing for ' + entity.name);
+                    await entity.unsetFlag('journal-backlinks', 'references');
+                    await entity.unsetFlag('journal-backlinks', 'sync');
+                }
             }
         }
 
@@ -228,9 +223,11 @@ export class JournalLink {
     references(text) {
         return Array.from(text.matchAll(this.re)).map(
             m => {
-                return {
-                    type: m[1],
-                    id: m[2]
+                let link_type = m[1];
+                if (link_type === "UUID") {
+                    return m[2];
+                } else {
+                    return link_type + "." + m[2];
                 }
             }
         );

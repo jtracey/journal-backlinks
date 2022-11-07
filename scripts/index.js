@@ -24,7 +24,7 @@ Hooks.on("init", () => {
         scope: 'world',
         config: true,
         type: String,
-        default: 'h1'
+        default: 'h2'
     });
     const permissions = Object.fromEntries(Object.entries(CONST.DOCUMENT_PERMISSION_LEVELS).map(([k, v]) => [v, game.i18n.localize('PERMISSION.'+k)]));
     game.settings.register(MODULE_NAME, 'minPermission', {
@@ -63,13 +63,15 @@ Hooks.on("init", () => {
     game.JournalLink = jl;
     CONFIG.debug.JournalLinks = game.settings.get(MODULE_NAME, 'debug');
 
-    // things what update
-    Hooks.on('preUpdateJournalEntry', game.JournalLink.updateJournalEntry.bind(jl));
+    // things to run on update
+    // https://foundryvtt.com/api/modules/hookEvents.html#preUpdateDocument
+    Hooks.on('preUpdateJournalEntryPage', game.JournalLink.updateJournalEntryPage.bind(jl));
     Hooks.on('preUpdateActor', game.JournalLink.updateActor.bind(jl));
     Hooks.on('preUpdateItem', game.JournalLink.updateItem.bind(jl));
 
-    // things what render
-    Hooks.on('renderJournalSheet', game.JournalLink.includeJournalLinks.bind(jl));
+    // things to run on render
+    // https://foundryvtt.com/api/modules/hookEvents.html#renderApplication
+    Hooks.on('renderJournalPageSheet', game.JournalLink.includeJournalPageLinks.bind(jl));
     Hooks.on('renderActorSheet', game.JournalLink.includeActorLinks.bind(jl));
     Hooks.on('renderItemSheet', game.JournalLink.includeItemLinks.bind(jl));
 
