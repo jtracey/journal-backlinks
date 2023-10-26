@@ -139,7 +139,12 @@ export class JournalLink {
         let linksList = $('<ul></ul>');
         for (const [type, values] of Object.entries(links)) {
             for (let value of values) {
-                let entity = game.documentIndex.uuids[value].leaves[0].entry;
+                let entity = game.documentIndex.uuids[value]?.leaves[0]?.entry;
+                if (!entity) {
+		    // this is a bug, but best to try to work around it and log
+                    this.log('ERROR | unable to find entity (try the sync button?)');
+		    continue;
+                }
                 if (!entity.testUserPermission(game.users.current, game.settings.get('journal-backlinks', 'minPermission')))
                     continue;
                 this.debug('adding link from ' + type + ' ' + entity.name);
