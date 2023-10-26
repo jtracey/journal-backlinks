@@ -64,7 +64,7 @@ export class JournalLink {
                 continue;
             }
 
-            var referenced = game.documentIndex.uuids[reference].leaves[0].entry;
+            var referenced = game.documentIndex.uuids[reference]?.leaves[0]?.entry;
 
             if (!referenced) {
                 this.debug('no referenced entity ' + reference + '; skipping');
@@ -191,7 +191,10 @@ export class JournalLink {
         this.log('syncing links...');
 
         let document_types = ['JournalEntryPage', 'Actor', 'Item', 'RollTable'];
-        let entries = game.documentIndex.lookup('', {documentTypes: document_types});
+        let entries = game.documentIndex.lookup('', {
+            documentTypes: document_types,
+            limit: Number.MAX_SAFE_INTEGER
+        });
 
         for (let type of document_types) {
             this.log('wiping referencedBy for ' + type);
