@@ -8,6 +8,9 @@ export class JournalLink {
         '.editor-content[data-edit="system.description.value"]',
         '.editor-content[data-edit="system.details.biography.value"]'
     ];
+    classes = [
+        'journal-page-content'
+    ];
 
     async updateJournalEntryPage(entity, change) {
         let text = change.text;
@@ -181,12 +184,7 @@ export class JournalLink {
         linksDiv.append(linksList);
 
         let element = this.getElementToModify(html);
-        if (element === undefined || element.length === 0) {
-            // the callback is (presumably) directly on what we want to modify
-            html.parent().append(linksDiv);
-        }
-        else {
-            // the callback is on a parent of what we want to modify
+        if (element !== undefined) {
             element.append(linksDiv);
         }
     }
@@ -245,9 +243,18 @@ export class JournalLink {
         for (let selector of this.elementSelectors) {
             let element = html.find(selector);
 
-            if (element.length === 1)
+            if (element.length === 1) {
                 return element;
+            }
         }
+
+        // nothing in the children, check if this is the element
+        for (let c of this.classes) {
+            if (html.hasClass(c)) {
+                return html.parent();
+            }
+        }
+
 
         this.log('ERROR | unable to find element to modify');
         return undefined;
