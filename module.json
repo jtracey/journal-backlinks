@@ -8,7 +8,7 @@
   "url": "https://github.com/jtracey/journal-backlinks",
   "license": "https://raw.githubusercontent.com/jtracey/journal-backlinks/main/LICENSE",
   "bugs": "https://github.com/jtracey/journal-backlinks/issues",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "compatibility": {
     "minimum": "11",
     "verified": "11"
