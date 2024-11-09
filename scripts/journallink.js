@@ -6,7 +6,8 @@ export class JournalLink {
 
     elementSelectors = [
         '.editor-content[data-edit="system.description.value"]',
-        '.editor-content[data-edit="system.details.biography.value"]'
+        '.editor-content[data-edit="system.details.biography.value"]',
+        '.backlink-window'
     ];
     classes = [
         'journal-page-content'
@@ -21,13 +22,59 @@ export class JournalLink {
         }
     }
 
+    // Die Methode zum Zusammenbauen des Contents
+    buildContent(fields, change, entity) {
+        let content = '';
+
+        // Über die Felder iterieren und die Werte zu `content` hinzufügen
+        fields.forEach(field => {
+            // Versucht den Wert von change[field] zu nehmen, falls undefined, nimmt entity[field]
+            const changeValue = this.getNestedValue(change, field);
+            const entityValue = this.getNestedValue(entity, field);
+            content += changeValue !== undefined ? changeValue : entityValue || '';
+        });
+
+        return content;
+    }
+
+    checkForChange(fields, change, entity) {
+        let isNew =false;
+        
+        fields.forEach(field => {
+            
+            const changeValue = this.getNestedValue(change, field);
+            if(changeValue!==undefined) {
+                isNew=true;
+            }            
+        });
+
+        return isNew;
+    }
+
+    // Hilfsfunktion, um verschachtelte Werte zu holen
+    getNestedValue(obj, path) {
+        return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+    }
+
     async updateActor(entity, change) {
-        let content = change.system?.details?.biography?.value;
-        if (content !== undefined) {
+        const fields = [
+            'system.details.notes.gmdescription',
+            'system.details.notes.ownerdescription',
+            'system.details.notes.value',
+            'system.details.biography.value',
+            ' system.gmNotes.source',
+            'system.notes.source'            
+        ];                
+
+        //let content = change.system?.details?.biography?.value;
+        let content = this.buildContent(fields, change, entity);
+
+        if(this.checkForChange(fields, change, entity)) {
             await this.update(entity, 'Actor', content || '', false);
         } else if (change.flags?.['journal-backlinks']?.['-=sync'] === null) {
-            await this.update(entity, 'Actor', entity.system.details.biography.value || '', true);
+            await this.update(entity, 'Actor', content || '', true);
         }
+        
     }
 
     async updateItem(entity, change) {
@@ -66,9 +113,13 @@ export class JournalLink {
                 this.debug(reference + ' is already referenced, skipping');
                 continue;
             }
-
-            var referenced = game.documentIndex.uuids[reference]?.leaves[0]?.entry;
-
+            
+            
+            //deprecated, does not work anymore
+            //var referenced = game.documentIndex.uuids[reference]?.leaves[0]?.entry;
+            
+            //Replacement
+            var referenced=fromUuidSync(reference);
             if (!referenced) {
                 this.debug('no referenced entity ' + reference + '; skipping');
                 continue;
@@ -88,7 +139,8 @@ export class JournalLink {
         }
 
         for (let outdated of existing.filter(v => !updated.includes(v))) {
-            let target = game.documentIndex.uuids[outdated].leaves[0].entry;
+                              
+            let target =  fromUuidSync(outdated);     
             if (!target) {
                 this.debug('outdated entity ' + type + ' ' + outdated + ' does not exist');
                 continue;
@@ -117,18 +169,39 @@ export class JournalLink {
     }
 
     includeJournalPageLinks(sheet, html, data) {
-        this.includeLinks(html, data.document);
+        this.includeLinks(html, data.document,"journal");
     }
 
     includeActorLinks(sheet, html, data) {
-        this.includeLinks(html, data.actor);
+        if(game.system.id="investigator") {            
+            const sheetElement = document.getElementById(sheet.id);            
+            const backlinkBox = document.createElement("div");
+            backlinkBox.id = "backlink-window"+sheet.id;             
+            backlinkBox.classList.add("backlinkBox");            
+            backlinkBox.classList.add("chatpaperfield");            
+            backlinkBox.style.position = "absolute";
+            backlinkBox.style.top = "0"; // Gleiche Höhe wie das Eltern-Element
+            backlinkBox.style.left = "calc(100% + 12px)";
+            backlinkBox.style.whiteSpace = "nowrap"; // Verhindert Zeilenumbrüche
+            backlinkBox.style.backgroundColor = "#000000cc"; // Halbtransparenter weißer Hintergrund
+            backlinkBox.style.borderRadius = "4px";         // Abgerundete Ecken mit 4px Radius
+            backlinkBox.style.boxShadow = "2px 2px 5px rgba(0, 0, 0, 0.3)"; // Dezenter schwarzer Schatten // Optional: Hintergrundfarbe            
+            backlinkBox.style.padding = "10px"; // Optional: Innenabstand für besseren Look
+            backlinkBox.style.border = "1px solid black"; // Optional: Rahmen            
+            if (!sheetElement.querySelector('.backlinkBox')) {
+                sheetElement.appendChild(backlinkBox);
+            }
+            
+        }
+        this.includeLinks(html, data.actor,"actor");
     }
 
     includeItemLinks(sheet, html, data) {
-        this.includeLinks(html, data.item);
+        this.includeLinks(html, data.item,"item");
     }
 
-    includeLinks(html, entityData) {
+    includeLinks(html, entityData,entityType) {
+        let displayWindow=false;
         let links = entityData.flags?.['journal-backlinks']?.['referencedBy'] || {};
         if (Object.keys(links).length === 0)
             return;
@@ -139,10 +212,11 @@ export class JournalLink {
         let heading = document.createElement(game.settings.get('journal-backlinks', 'headingTag'));
         heading.append('Linked from');
         linksDiv.append(heading);
-        let linksList = $('<ul></ul>');
+        let linksList = $('<ul class="dsalist"></ul>');
         for (const [type, values] of Object.entries(links)) {
             for (let value of values) {
-                let entity = game.documentIndex.uuids[value]?.leaves[0]?.entry;
+                
+                let entity = fromUuidSync(value);     
                 if (!entity) {
 		    // this is a bug, but best to try to work around it and log
                     this.log('ERROR | unable to find entity (try the sync button?)');
@@ -150,10 +224,13 @@ export class JournalLink {
                 }
                 if (!entity.testUserPermission(game.users.current, game.settings.get('journal-backlinks', 'minPermission')))
                     continue;
+                displayWindow=true;
                 this.debug('adding link from ' + type + ' ' + entity.name);
-                let link = $('<a class="content-link" draggable="true"></a>');
+                let link = $('<a class="content-link backlink" draggable="true"></a>');
                 link.attr('data-type', type);
                 link.attr('data-uuid', value);
+                link.attr('data-link', "");
+                link.attr('data-id', entity.id);
 
                 let icon = 'fas ';
                 switch (type) {
@@ -181,19 +258,32 @@ export class JournalLink {
                 linksList.append(li);
             }
         }
-        linksDiv.append(linksList);
-
-        let element = this.getElementToModify(html);
-        if (element !== undefined) {
-            element.append(linksDiv);
-        }
+        linksDiv.append(linksList);        
+            
+        const systemIds = ["investigator", "dsa5"];
+        if (systemIds.includes(game.system.id)&& entityType=="actor")                                        
+                {
+                    if(displayWindow )
+                        {
+                            $("#"+html[0].id+" .backlinkBox").append(linksDiv);                                    
+                        }else {
+                            $("#" + html[0].id + " .backlinkBox").css("display", "none");
+                        }                                        
+                }else {
+                    let element = this.getElementToModify(html);            
+                    if (element !== undefined) {
+                        element.append(linksDiv);
+                    }
+                }
+        
     }
 
     // clears and recreates references
     async sync() {
         this.log('syncing links...');
 
-        let document_types = ['JournalEntryPage', 'Actor', 'Item', 'RollTable'];
+        //let document_types = ['JournalEntryPage', 'Actor', 'Item', 'RollTable'];
+        let document_types = ['JournalEntryPage', 'Actor'];
         let entries = game.documentIndex.lookup('', {
             documentTypes: document_types,
             limit: Number.MAX_SAFE_INTEGER

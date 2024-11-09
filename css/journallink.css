@@ -3,3 +3,10 @@
     display: none;
   }
 }
+
+
+.backlinkBox .backlink {
+  background-color: transparent;
+  border: none;
+  color:#ffffff;
+}

@@ -2,36 +2,35 @@
   "id": "journal-backlinks",
   "title": "Journal Backlinks",
   "description": "Include links to entities that reference the viewed journal, actor, item, etc.",
-  "authors": [{
-    "name": "jtracey"
-  }],
-  "url": "https://github.com/jtracey/journal-backlinks",
-  "license": "https://raw.githubusercontent.com/jtracey/journal-backlinks/main/LICENSE",
-  "bugs": "https://github.com/jtracey/journal-backlinks/issues",
-  "version": "0.11.1",
+  "authors": [
+    {
+      "name": "jtracey",
+      "flags": {}
+    },{
+      "name": "muwak",
+      "flags": {}
+    }
+  ],
+  "url": "https://www.schwarzmantel.de/modules/journal-backlinks/",
+  "version": "0.11.19",
   "compatibility": {
-    "minimum": "11",
-    "verified": "11"
+    "minimum": "10",
+    "verified": "12"
   },
   "esmodules": [
-    "./scripts/index.js"
+    "scripts/index.js"
   ],
   "styles": [
-    "./css/journallink.css"
+    "css/journallink.css"
   ],
   "languages": [
     {
       "lang": "en",
       "name": "English",
-      "path": "./lang/en.json"
-    },
-    {
-      "lang": "es",
-      "name": "Español",
-      "path": "./lang/es.json"
+      "path": "lang/en.json",
+      "flags": {}
     }
   ],
-  "manifest": "https://raw.githubusercontent.com/jtracey/journal-backlinks/main/module.json",
-  "download": "https://github.com/jtracey/journal-backlinks/archive/main.zip",
-  "changelog": "https://github.com/jtracey/journal-backlinks/releases"
+  "manifest": "https://www.schwarzmantel.de/modules/journal-backlinks/module.json",
+  "download": "https://www.schwarzmantel.de/modules/journal-backlinks/journal-backlinks.zip"
 }
