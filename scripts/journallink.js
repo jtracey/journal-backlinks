@@ -55,7 +55,12 @@ export class JournalLink {
     getNestedValue(obj, path) {
         return path.split('.').reduce((acc, part) => acc && acc[part], obj);
     }
-
+    async initNewPage(entity, change) {    
+        //Make sure references are not carried over to copies
+        await entity.unsetFlag('journal-backlinks', 'referencedBy');
+        await entity.unsetFlag('journal-backlinks', 'references');
+        await entity.unsetFlag('journal-backlinks', 'sync');
+    }
     async updateActor(entity, change) {
         const fields = [
             'system.details.notes.gmdescription',
