@@ -23,7 +23,7 @@ jobs:
           shopt -s extglob
           cp -r !(release) release/
           cd release
-          zip -r ../journal-backlinks.zip .
+          zip -r ../journal-backlinks-extended.zip .
           cd ..
 
       - name: Upload journal-backlinks.zip to Release
@@ -31,8 +31,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./journal-backlinks.zip
-          asset_name: journal-backlinks.zip
+          asset_path: ./journal-backlinks-extended.zip
+          asset_name: journal-backlinks-extended.zip
           asset_content_type: application/zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
