@@ -1,9 +1,6 @@
 name: Release Module
 
 on:
-  push:
-    branches:
-      - main  # zum Testen auf deinem Hauptbranch, passe dies an deinen Branch an
   release:
     types: [created]
 
@@ -15,7 +12,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      # Optional: Set up Node.js if you have dependencies
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -31,17 +27,23 @@ jobs:
           cd ..
 
       - name: Upload journal-backlinks.zip to Release
+        if: github.event_name == 'release'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./journal-backlinks.zip
           asset_name: journal-backlinks.zip
           asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload module.json as Plaintext
+        if: github.event_name == 'release'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./module.json
           asset_name: module.json
           asset_content_type: application/json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
