@@ -63,6 +63,7 @@ export class JournalLink {
     }
     async updateActor(entity, change) {
         const fields = [
+            'system.details.biography.value',
             'system.details.notes.gmdescription',
             'system.details.notes.ownerdescription',
             'system.details.notes.value',
@@ -83,11 +84,10 @@ export class JournalLink {
     }
 
     async updateItem(entity, change) {
-        const fields = [
+        const fields = [            
             'system.description.value',
-            'system.gmdescription.value'
-            
-                    
+            'system.gmdescription.value',
+            'system.notes.source'                                            
         ];                
 
         //let content = change.system?.details?.biography?.value;
