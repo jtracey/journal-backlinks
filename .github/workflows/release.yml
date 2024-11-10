@@ -1,0 +1,40 @@
+name: Release Module
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create ZIP file for release
+        run: zip -r journal-backlinks.zip .
+
+      - name: Upload journal-backlinks.zip to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./journal-backlinks.zip
+          asset_name: journal-backlinks.zip
+          asset_content_type: application/zip
+
+      - name: Upload module.json as Plaintext
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./module.json
+          asset_name: module.json
+          asset_content_type: application/json
