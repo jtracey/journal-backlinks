@@ -8,7 +8,7 @@ export class JournalLink {
         '.editor-content[data-edit="system.description.value"]',
         '.editor-content[data-edit="system.details.biography.value"]',
         '.backlink-window'
-    ];
+    ];    
     classes = [
         'journal-page-content'
     ];
@@ -83,12 +83,21 @@ export class JournalLink {
     }
 
     async updateItem(entity, change) {
-        let content = change.system?.description?.value;
-        if (content !== undefined) {
+        const fields = [
+            'system.description.value',
+            'system.gmdescription.value'
+            
+                    
+        ];                
+
+        //let content = change.system?.details?.biography?.value;
+        let content = this.buildContent(fields, change, entity);
+
+        if(this.checkForChange(fields, change, entity)) {
             await this.update(entity, 'Item', content || '', false);
         } else if (change.flags?.['journal-backlinks']?.['-=sync'] === null) {
-            await this.update(entity, 'Item', entity.system.description.value || '', true);
-        }
+            await this.update(entity, 'Item', content || '', true);
+        }       
     }
 
     async update(entity, entityType, content, force) {
@@ -173,13 +182,7 @@ export class JournalLink {
         await entity.setFlag('journal-backlinks', 'references', updated);
     }
 
-    includeJournalPageLinks(sheet, html, data) {
-        this.includeLinks(html, data.document,"journal");
-    }
-
-    includeActorLinks(sheet, html, data) {
-        if(game.system.id="investigator") {            
-            const sheetElement = document.getElementById(sheet.id);            
+    generateBacklinkBox(sheet) {
             const backlinkBox = document.createElement("div");
             backlinkBox.id = "backlink-window"+sheet.id;             
             backlinkBox.classList.add("backlinkBox");            
@@ -192,16 +195,33 @@ export class JournalLink {
             backlinkBox.style.borderRadius = "4px";         // Abgerundete Ecken mit 4px Radius
             backlinkBox.style.boxShadow = "2px 2px 5px rgba(0, 0, 0, 0.3)"; // Dezenter schwarzer Schatten // Optional: Hintergrundfarbe            
             backlinkBox.style.padding = "10px"; // Optional: Innenabstand für besseren Look
-            backlinkBox.style.border = "1px solid black"; // Optional: Rahmen            
-            if (!sheetElement.querySelector('.backlinkBox')) {
-                sheetElement.appendChild(backlinkBox);
-            }
-            
+            backlinkBox.style.border = "1px solid black"; // Optional: Rahmen         
+            return backlinkBox;
+    }
+
+    includeJournalPageLinks(sheet, html, data) {
+        this.includeLinks(html, data.document,"journal");
+    }
+
+    includeActorLinks(sheet, html, data) {
+                
+        const sheetElement = document.getElementById(sheet.id);            
+        const backlinkBox = this.generateBacklinkBox(sheet);
+        if (!sheetElement.querySelector('.backlinkBox')) {
+            sheetElement.appendChild(backlinkBox);
         }
+                    
         this.includeLinks(html, data.actor,"actor");
     }
 
     includeItemLinks(sheet, html, data) {
+        
+        const sheetElement = document.getElementById(sheet.id);            
+        const backlinkBox = this.generateBacklinkBox(sheet);
+        if (!sheetElement.querySelector('.backlinkBox')) {
+            sheetElement.appendChild(backlinkBox);
+        }
+
         this.includeLinks(html, data.item,"item");
     }
 
@@ -264,9 +284,8 @@ export class JournalLink {
             }
         }
         linksDiv.append(linksList);        
-            
-        const systemIds = ["investigator", "dsa5"];
-        if (systemIds.includes(game.system.id)&& entityType=="actor")                                        
+                    
+        if ( entityType=="actor" ||entityType=="item" )                                        
                 {
                     if(displayWindow )
                         {
@@ -287,12 +306,13 @@ export class JournalLink {
     async sync() {
         this.log('syncing links...');
 
-        //let document_types = ['JournalEntryPage', 'Actor', 'Item', 'RollTable'];
-        let document_types = ['JournalEntryPage', 'Actor'];
+        //let document_types = ['JournalEntryPage', 'Actor'];
+        let document_types = ['JournalEntryPage', 'Actor', 'Item', 'RollTable'];
         let entries = game.documentIndex.lookup('', {
             documentTypes: document_types,
             limit: Number.MAX_SAFE_INTEGER
-        });
+        });        
+        
 
         for (let type of document_types) {
             this.log('wiping referencedBy for ' + type);
