@@ -24,7 +24,8 @@ jobs:
       - name: Create ZIP file for release
         run: |
           mkdir -p release
-          cp -r * release/
+          shopt -s extglob
+          cp -r !(release) release/
           cd release
           zip -r ../journal-backlinks.zip .
           cd ..
