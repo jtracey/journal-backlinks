@@ -11,7 +11,7 @@
       "flags": {}
     }
   ],
-  "url": "https://www.schwarzmantel.de/modules/journal-backlinks/",
+  "url": "https://github.com/Muwak77/journal-backlinks/",
   "version": "0.12.1",
   "compatibility": {
     "minimum": "10",
@@ -31,6 +31,6 @@
       "flags": {}
     }
   ],
-  "manifest": "https://www.schwarzmantel.de/modules/journal-backlinks/module.json",
-  "download": "https://www.schwarzmantel.de/modules/journal-backlinks/journal-backlinks.zip"
+  "manifest": "https://github.com/Muwak77/journal-backlinks/releases/download/v0.12.1/module.json",
+  "download": "https://github.com/Muwak77/journal-backlinks/releases/download/v0.12.1/journal-backlinks.zip"
 }
